@@ -143,11 +143,21 @@ int main(int argc, char** argv) {
     std::unordered_map<std::string, std::vector<int64_t>> out_syn_by_flow;
     std::unordered_map<std::string, std::vector<int64_t>> in_syn_by_flow;
 
+    std::unordered_map<std::string, int64_t> zero_in_by_flow;
+    std::unordered_map<std::string, int64_t> zero_out_by_flow;
+
     for (size_t i = 0; i < graph.size(); ++i) {
         out_deg_by_flow[flow[i]].push_back(out_deg[i]);
         in_deg_by_flow[flow[i]].push_back(in_deg[i]);
         out_syn_by_flow[flow[i]].push_back(out_syn[i]);
         in_syn_by_flow[flow[i]].push_back(in_syn[i]);
+
+        if (out_deg[i] == 0) {
+            zero_out_by_flow[flow[i]]++;
+        }
+        if (in_deg[i] == 0) {
+            zero_in_by_flow[flow[i]]++;
+        }
     }
 
     std::unordered_map<std::string, std::vector<int64_t>> out_deg_by_super_class;
@@ -155,22 +165,34 @@ int main(int argc, char** argv) {
     std::unordered_map<std::string, std::vector<int64_t>> out_syn_by_super_class;
     std::unordered_map<std::string, std::vector<int64_t>> in_syn_by_super_class;
 
+    std::unordered_map<std::string, int64_t> zero_in_by_super_class;
+    std::unordered_map<std::string, int64_t> zero_out_by_super_class;
+
     for (size_t i = 0; i < graph.size(); ++i) {
         out_deg_by_super_class[super_class[i]].push_back(out_deg[i]);
         in_deg_by_super_class[super_class[i]].push_back(in_deg[i]);
         out_syn_by_super_class[super_class[i]].push_back(out_syn[i]);
         in_syn_by_super_class[super_class[i]].push_back(in_syn[i]);
+
+        if (out_deg[i] == 0) {
+            zero_out_by_super_class[super_class[i]]++;
+        }
+        if (in_deg[i] == 0) {
+            zero_in_by_super_class[super_class[i]]++;
+        }
     }
 
     for (const auto& [f, _] : out_deg_by_flow) {
-        std::cout << f << ": " << out_deg_by_flow[f].size() << " " << in_deg_by_flow[f].size()  << " " << out_syn_by_flow[f].size()  << " " << in_syn_by_flow[f].size() << std::endl;
+        std::cout << f << ": " << out_deg_by_flow[f].size() << std::endl;
         std::cout << median(out_deg_by_flow[f]) << " " << median(in_deg_by_flow[f]) << " " << median(out_syn_by_flow[f]) << " " << median(in_syn_by_flow[f]) << std::endl;
         std::cout << mean(out_deg_by_flow[f]) << " " << mean(in_deg_by_flow[f]) << " " << mean(out_syn_by_flow[f]) << " " << mean(in_syn_by_flow[f]) << std::endl;
+        std::cout << zero_in_by_flow[f] / static_cast<double>(out_deg_by_flow[f].size()) << " " << zero_out_by_flow[f] / static_cast<double>(out_deg_by_flow[f].size()) << std::endl;
     }
 
     for (const auto& [sc, _] : out_deg_by_super_class) {
-        std::cout << sc << ": " << out_deg_by_super_class[sc].size() << " " << in_deg_by_super_class[sc].size()  << " " << out_syn_by_super_class[sc].size()  << " " << in_syn_by_super_class[sc].size() << std::endl;
+        std::cout << sc << ": " << out_deg_by_super_class[sc].size() << std::endl;
         std::cout << median(out_deg_by_super_class[sc]) << " " << median(in_deg_by_super_class[sc]) << " " << median(out_syn_by_super_class[sc]) << " " << median(in_syn_by_super_class[sc]) << std::endl;
         std::cout << mean(out_deg_by_super_class[sc]) << " " << mean(in_deg_by_super_class[sc]) << " " << mean(out_syn_by_super_class[sc]) << " " << mean(in_syn_by_super_class[sc]) << std::endl;
+        std::cout << zero_in_by_super_class[sc] / static_cast<double>(out_deg_by_super_class[sc].size()) << " " << zero_out_by_super_class[sc] / static_cast<double>(out_deg_by_super_class[sc].size()) << std::endl;
     }
 }
