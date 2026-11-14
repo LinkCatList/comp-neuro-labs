@@ -28,10 +28,22 @@ std::vector<double> MovingAverage(const std::vector<double>& signal, int windowS
     return result;
 }
 
+double CalculateMSE(const std::vector<double>& original, const std::vector<double>& processed) {
+    if (original.empty() || processed.empty() || original.size() != processed.size()) {
+        return -1;
+    }
+
+    double sum = 0;
+    for (size_t i = 0; i < original.size(); ++i) {
+        sum += (original[i] - processed[i]) * (original[i] - processed[i]);
+    }
+    return sum / processed.size();
+}
+
 int main() {
     const double samplingRate = 256;
     const double duration = 5;
-    const int windowSize = 5;
+    const std::vector<int> windowSizes = {5, 15, 31};
     const int sampleCount = samplingRate * duration;
 
     std::ofstream file("../data/signal.csv");
@@ -50,14 +62,22 @@ int main() {
         noisySignal.emplace_back(signal.back() + noise(gen));
     }
 
-    std::vector<double> filteredSignal = MovingAverage(noisySignal, windowSize);
+    std::vector<double> filteredSignal = MovingAverage(noisySignal, windowSizes[0]);
 
     for (size_t i = 0; i < sampleCount; ++i) {
         double time = i / samplingRate;
         file << time << "," << signal[i] << "," << noisySignal[i];
-        if (i >= windowSize - 1) {
-            file << "," << filteredSignal[i - windowSize + 1];
+        if (i >= windowSizes[0] - 1) {
+            file << "," << filteredSignal[i - windowSizes[0] + 1];
         }
         file << "\n";
+    }
+
+    std::ofstream mseFile("../data/signals_mse.csv");
+    mseFile << "window_size,mse_before,mse_after\n";
+
+    for (size_t i = 0; i < windowSizes.size(); ++i) {
+        filteredSignal = MovingAverage(noisySignal, windowSizes[i]);
+        mseFile << windowSizes[i] << "," << CalculateMSE(signal, noisySignal) << "," << CalculateMSE(std::vector<double>(signal.begin() + windowSizes[i] - 1, signal.end()), filteredSignal) << "\n";
     }
 }
