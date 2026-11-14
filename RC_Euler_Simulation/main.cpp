@@ -1,10 +1,12 @@
 #include <iostream>
 #include <fstream>
+#include <cmath>
 
 int main() {
     std::ofstream file("rc_simulation.csv");
 
     const double UIn = 10;
+    const double UC_0 = 2;
     double UC = 2;
     const double R = 2000;
     const double C = 0.0001;
@@ -13,12 +15,16 @@ int main() {
 
     const double RC = R * C;
 
-    file << "time,RC\n";
-    file << "0.0," << RC << "\n";
+    double UCExact = UC;
+
+    file << "time,euler,exact,error\n";
+    file << "0.0," << UC << "," << UCExact << "," << "0" << "\n";
 
     for (int i = 0; i < DURATION / Dt; ++i) {
         double UNew = UC + (UIn - UC) / RC * Dt;
         UC = UNew;
-        file << (i + 1) * Dt << "," << UC << "\n";
+        double time = (i + 1) * Dt;
+        UCExact = UIn + (UC_0 - UIn) * std::exp(-time / RC);
+        file << time << "," << UC << "," << UCExact << "," << std::abs(UC - UCExact) << "\n";
     }
 }
