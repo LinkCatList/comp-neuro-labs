@@ -3,6 +3,7 @@
 #include <fstream>
 #include <random>
 #include <vector>
+#include <complex>
 
 std::vector<double> MovingAverage(const std::vector<double>& signal, int windowSize) {
     if (signal.empty() || windowSize <= 0 || windowSize > static_cast<int>(signal.size())) {
@@ -38,6 +39,21 @@ double CalculateMSE(const std::vector<double>& original, const std::vector<doubl
         sum += (original[i] - processed[i]) * (original[i] - processed[i]);
     }
     return sum / processed.size();
+}
+
+std::vector<std::complex<double>> CalculateDFT(const std::vector<double>& signal) {
+    std::vector<std::complex<double>> dft;
+    const int n = signal.size();
+
+    for (int k = 0; k <= static_cast<int>(n / 2); ++k) {
+        std::complex<double> a;
+        for (int i = 0; i < n; ++i) {
+            a += std::complex<double>(signal[i] * std::cos(2 * std::acos(-1) * k * i / n), -signal[i] * std::sin(2 * std::acos(-1) * k * i / n));
+        }
+        dft.emplace_back(a);
+    }
+
+    return dft;
 }
 
 int main() {
@@ -79,5 +95,10 @@ int main() {
     for (size_t i = 0; i < windowSizes.size(); ++i) {
         filteredSignal = MovingAverage(noisySignal, windowSizes[i]);
         mseFile << windowSizes[i] << "," << CalculateMSE(signal, noisySignal) << "," << CalculateMSE(std::vector<double>(signal.begin() + windowSizes[i] - 1, signal.end()), filteredSignal) << "\n";
+    }
+
+    const auto dft = CalculateDFT(signal);
+    for (const auto& a : dft) {
+        std::cout << std::abs(a) << "\n";
     }
 }
